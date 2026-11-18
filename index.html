@@ -63,6 +63,19 @@
   .rule{color:var(--dim);width:150px;margin:34px 0 30px}
   .hist{font-size:clamp(15px,1.9vw,17px);line-height:1.82;color:#bdb8ad;font-weight:300;max-width:52ch}
 
+  /* player de audio */
+  .player{margin-top:34px;max-width:430px}
+  .player-lbl{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--mut);margin-bottom:14px}
+  .player-row{display:flex;align-items:center;gap:15px}
+  .pbtn{width:50px;height:50px;flex:0 0 auto;border-radius:50%;border:1px solid var(--ink);background:none;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .25s,color .25s}
+  .pbtn:hover{background:var(--ink);color:var(--bg)}
+  .pbtn svg{width:17px;height:17px;fill:currentColor;margin-left:1px}
+  .pbtn .i-pause{margin-left:0}
+  .ptrack{flex:1;height:3px;background:var(--hair);position:relative;cursor:pointer}
+  .ptrack::after{content:'';position:absolute;inset:-9px 0}
+  .pfill{position:absolute;left:0;top:0;height:100%;width:0;background:var(--ink)}
+  .ptime{flex:0 0 auto;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums;min-width:86px;text-align:right}
+
   /* ---------- INDICE ---------- */
   .index{padding:clamp(110px,16vh,180px) clamp(22px,6vw,96px) clamp(80px,12vh,140px);max-width:1360px;margin:0 auto}
   .index-h{font-family:'Fraunces',serif;font-style:italic;font-size:clamp(26px,4vw,40px);margin-bottom:8px}
@@ -222,6 +235,15 @@
       <blockquote class="frase">Fui criado por mulheres que lutaram, como minha tia-avó Inês Cassiano. Ser negro é resistir, persistir e não desistir — sempre com luta.</blockquote>
       <div class="rule"><svg class='wave' viewBox='0 0 600 26' fill='none' preserveAspectRatio='none' aria-hidden='true'><path d='M0,13 C40,1 70,25 110,13 S180,1 220,13 S290,25 330,13 S400,1 440,13 S510,25 550,13 S600,7 600,13' stroke='currentColor' stroke-width='1.4'/></svg></div>
       <p class="hist">Arte-educador e diretor do Núcleo Fazendo Arte. Criado por mulheres fortes — entre elas sua tia-avó Inês Cassiano, que dá nome ao CRAS do Jardim Progresso. Levou a dança a crianças da cidade que subiram ao pódio em festivais pelo país.</p>
+      <div class="player">
+        <div class="player-lbl">Ouça a história de Diego, na própria voz.</div>
+        <div class="player-row">
+          <button class="pbtn" aria-label="Tocar áudio"><svg class='i-play' viewBox='0 0 24 24'><path d='M8 5v14l11-7z'/></svg><svg class='i-pause' viewBox='0 0 24 24' style='display:none'><path d='M6 5h4v14H6zM14 5h4v14h-4z'/></svg></button>
+          <div class="ptrack"><div class="pfill"></div></div>
+          <div class="ptime">0:00&nbsp;/&nbsp;0:00</div>
+        </div>
+        <audio preload="none" src="audio/diego.mp3"></audio>
+      </div>
     </div>
   </section>
 
@@ -411,4 +433,22 @@ document.addEventListener('keydown',function(e){if(!lb.classList.contains('open'
 var x0=null;lb.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;},{passive:true});
 lb.addEventListener('touchend',function(e){if(x0===null)return;var dx=e.changedTouches[0].clientX-x0;
   if(Math.abs(dx)>50)show(cur+(dx<0?1:-1));x0=null;});
+// players de audio
+function fmt(s){s=Math.floor(s||0);return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2);}
+document.querySelectorAll('.player').forEach(function(p){
+  var au=p.querySelector('audio'),btn=p.querySelector('.pbtn'),
+      pl=p.querySelector('.i-play'),pa=p.querySelector('.i-pause'),
+      fill=p.querySelector('.pfill'),track=p.querySelector('.ptrack'),tt=p.querySelector('.ptime');
+  btn.addEventListener('click',function(){
+    if(au.paused){document.querySelectorAll('.player audio').forEach(function(o){if(o!==au)o.pause();});au.play();}
+    else au.pause();});
+  au.addEventListener('play',function(){pl.style.display='none';pa.style.display='';});
+  au.addEventListener('pause',function(){pl.style.display='';pa.style.display='none';});
+  au.addEventListener('loadedmetadata',function(){tt.textContent='0:00 / '+fmt(au.duration);});
+  au.addEventListener('timeupdate',function(){var pct=au.duration?au.currentTime/au.duration*100:0;
+    fill.style.width=pct+'%';tt.textContent=fmt(au.currentTime)+' / '+fmt(au.duration);});
+  au.addEventListener('ended',function(){fill.style.width='0%';});
+  track.addEventListener('click',function(e){var r=track.getBoundingClientRect();
+    if(au.duration)au.currentTime=(e.clientX-r.left)/r.width*au.duration;});
+});
 </script></body></html>
